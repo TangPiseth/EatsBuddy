@@ -23,3 +23,14 @@ val Black = Color(0xFF212121)
 // Status Colors
 val Orange = Color(0xFFFF9800)
 val Red = Color(0xFFE53935)
+
+// Auth Screen Colors (matching XML colors)
+val PrimaryOrange = Color(0xFFFF6B35)       // Primary color from XML
+val SecondaryBlue = Color(0xFF1A73E8)       // Secondary color
+val PrimaryLight = Color(0xFFFFF4EF)        // Light primary background
+val InputBackground = Color(0xFFF8F9FA)     // Input field background
+val TextPrimary = Color(0xFF2C3E50)         // Primary text
+val TextSecondary = Color(0xFF7F8C8D)       // Secondary text
+val DividerColor = Color(0xFFE0E0E0)        // Divider
+val GradientStart = Color(0xFFFFF9F5)       // Gradient start
+val GradientEnd = Color(0xFFFFFFFF)         // Gradient end

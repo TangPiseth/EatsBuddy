@@ -5,12 +5,15 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.example.eatsbuddy.ui.screens.HomePage
+import com.example.eatsbuddy.ui.screens.LoginScreen
+import com.example.eatsbuddy.ui.screens.RegisterScreen
 import com.example.eatsbuddy.ui.theme.EatsBuddyTheme
 
 class MainActivity : ComponentActivity() {
@@ -18,12 +21,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            EatsBuddyTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+            EatsBuddyTheme(darkTheme = false) {
+                Surface(modifier = Modifier.fillMaxSize()) {
+                    EatsBuddyApp()
                 }
             }
         }
@@ -31,17 +31,62 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    EatsBuddyTheme {
-        Greeting("Android")
+fun EatsBuddyApp() {
+    val navController = rememberNavController()
+    
+    NavHost(
+        navController = navController,
+        startDestination = "home"
+    ) {
+        composable("home") {
+            HomePage(
+                onProfileClick = {
+                    navController.navigate("register")
+                }
+            )
+        }
+        
+        composable("register") {
+            RegisterScreen(
+                onRegisterClick = { email, password, confirmPassword ->
+                    // Handle registration logic here
+                    // For now, navigate to home after registration
+                    navController.navigate("home") {
+                        popUpTo("home") { inclusive = true }
+                    }
+                },
+                onLoginClick = {
+                    navController.navigate("login") {
+                        popUpTo("register") { inclusive = true }
+                    }
+                },
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+        
+        composable("login") {
+            LoginScreen(
+                onLoginClick = { email, password ->
+                    // Handle login logic here
+                    // For now, navigate to home after login
+                    navController.navigate("home") {
+                        popUpTo("home") { inclusive = true }
+                    }
+                },
+                onForgotPasswordClick = {
+                    // Handle forgot password
+                },
+                onSignUpClick = {
+                    navController.navigate("register") {
+                        popUpTo("login") { inclusive = true }
+                    }
+                },
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
     }
 }
