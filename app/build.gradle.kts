@@ -2,12 +2,12 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.google.services)
+     alias(libs.plugins.google.services)
 }
 
 android {
     namespace = "com.example.eatsbuddy"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.eatsbuddy"
@@ -75,10 +75,10 @@ dependencies {
     // DataStore for local storage (modern replacement for PaperDB)
     implementation(libs.androidx.datastore.preferences)
 
-    // Firebase
-    implementation(libs.firebase.bom.v3380)
-    implementation(libs.google.firebase.auth.ktx)
-    implementation(libs.google.firebase.firestore.ktx)
+    // Firebase (temporarily disabled - uncomment when you have valid google-services.json)
+    // implementation(platform(libs.firebase.bom))
+    // implementation("com.google.firebase:firebase-auth-ktx")
+    // implementation("com.google.firebase:firebase-firestore-ktx")
 
     // Navigation
     implementation(libs.androidx.navigation.compose)
