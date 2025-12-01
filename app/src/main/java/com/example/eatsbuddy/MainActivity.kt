@@ -11,8 +11,10 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.eatsbuddy.ui.screens.GroceryListPage
 import com.example.eatsbuddy.ui.screens.HomePage
 import com.example.eatsbuddy.ui.screens.LoginScreen
+import com.example.eatsbuddy.ui.screens.MealPlannerPage
 import com.example.eatsbuddy.ui.screens.RegisterScreen
 import com.example.eatsbuddy.ui.theme.EatsBuddyTheme
 
@@ -42,6 +44,40 @@ fun EatsBuddyApp() {
             HomePage(
                 onProfileClick = {
                     navController.navigate("register")
+                },
+                onRecipesClick = {
+                    // TODO: Navigate to recipes page
+                },
+                onMealPlannerClick = {
+                    navController.navigate("mealPlanner")
+                },
+                onGroceryListClick = {
+                    navController.navigate("groceryList")
+                },
+                onSearchClick = {
+                    // TODO: Handle search
+                },
+                onRecipeClick = { recipeId ->
+                    // TODO: Navigate to recipe details
+                },
+                onCategoryClick = { category ->
+                    // TODO: Navigate to category filtered recipes
+                }
+            )
+        }
+        
+        composable("mealPlanner") {
+            MealPlannerPage(
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+        
+        composable("groceryList") {
+            GroceryListPage(
+                onBackClick = {
+                    navController.popBackStack()
                 }
             )
         }

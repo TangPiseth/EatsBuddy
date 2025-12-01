@@ -19,7 +19,7 @@ fun SearchBar(
     query: String,
     onQueryChange: (String) -> Unit,
     modifier: Modifier = Modifier,
-    placeholder: String = "Search for restaurants, cuisines..."
+    placeholder: String = "Search for recipes, cuisines..."
 ) {
     OutlinedTextField(
         value = query,
