@@ -78,10 +78,11 @@ dependencies {
     // DataStore for local storage (modern replacement for PaperDB)
     implementation(libs.androidx.datastore.preferences)
 
-    // Firebase (temporarily disabled - uncomment when you have valid google-services.json)
-    // implementation(platform(libs.firebase.bom))
-    // implementation("com.google.firebase:firebase-auth-ktx")
-    // implementation("com.google.firebase:firebase-firestore-ktx")
+    // Firebase
+    implementation(platform("com.google.firebase:firebase-bom:33.8.0"))
+    implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation("com.google.firebase:firebase-storage-ktx")
 
     // Navigation
     implementation(libs.androidx.navigation.compose)

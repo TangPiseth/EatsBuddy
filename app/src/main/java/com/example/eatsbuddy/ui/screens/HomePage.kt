@@ -46,11 +46,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import com.example.eatsbuddy.data.model.UserProfile
 import com.example.eatsbuddy.ui.components.SearchBar
 import com.example.eatsbuddy.ui.components.SectionHeader
 import com.example.eatsbuddy.ui.theme.EatsBuddyTheme
@@ -86,6 +89,8 @@ data class RecipePreview(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomePage(
+    userProfile: UserProfile? = null,
+    isAuthenticated: Boolean = false,
     onProfileClick: () -> Unit = {},
     onRecipesClick: () -> Unit = {},
     onMealPlannerClick: () -> Unit = {},
@@ -172,7 +177,27 @@ fun HomePage(
                             .clickable { onProfileClick() },
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(text = "👤", fontSize = 20.sp)
+                        if (isAuthenticated && userProfile != null) {
+                            if (userProfile.profilePictureUrl != null) {
+                                AsyncImage(
+                                    model = userProfile.profilePictureUrl,
+                                    contentDescription = "Profile",
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .clip(CircleShape),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
+                                Text(
+                                    text = getInitials(userProfile.firstName, userProfile.lastName),
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = GreenPrimary
+                                )
+                            }
+                        } else {
+                            Text(text = "👤", fontSize = 20.sp)
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -207,7 +232,10 @@ fun HomePage(
                 ) {
                     Column {
                         Text(
-                            text = "Welcome Back! 👋",
+                            text = if (isAuthenticated && userProfile != null) 
+                                "Welcome, ${userProfile.firstName}! 👋" 
+                            else 
+                                "Welcome Back! 👋",
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold,
                             color = Color.White
@@ -627,4 +655,10 @@ fun RecipeCardPreview() {
             onClick = {}
         )
     }
+}
+
+private fun getInitials(firstName: String?, lastName: String?): String {
+    val first = firstName?.firstOrNull()?.uppercaseChar() ?: ""
+    val last = lastName?.firstOrNull()?.uppercaseChar() ?: ""
+    return "$first$last".ifEmpty { "?" }
 }

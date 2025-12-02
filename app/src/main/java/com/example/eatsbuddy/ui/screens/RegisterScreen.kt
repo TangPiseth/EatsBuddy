@@ -31,6 +31,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -39,6 +40,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -65,13 +68,16 @@ import com.example.eatsbuddy.ui.theme.GreenLight
 import com.example.eatsbuddy.ui.theme.GreenPrimary
 import com.example.eatsbuddy.ui.theme.GreenSurface
 import com.example.eatsbuddy.ui.theme.InputBackground
+import com.example.eatsbuddy.ui.theme.Red
 import com.example.eatsbuddy.ui.theme.TextPrimary
 import com.example.eatsbuddy.ui.theme.TextSecondary
 import com.example.eatsbuddy.ui.theme.White
+import com.example.eatsbuddy.viewmodel.AuthViewModel
 
 @Composable
 fun RegisterScreen(
-    onRegisterClick: (email: String, password: String, confirmPassword: String) -> Unit = { _, _, _ -> },
+    authViewModel: AuthViewModel,
+    onRegisterSuccess: () -> Unit = {},
     onLoginClick: () -> Unit = {},
     onBackClick: () -> Unit = {},
     modifier: Modifier = Modifier
@@ -81,6 +87,15 @@ fun RegisterScreen(
     var confirmPassword by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
+    
+    val authState by authViewModel.authState.collectAsState()
+    
+    // Navigate to home when authenticated
+    LaunchedEffect(authState.isAuthenticated) {
+        if (authState.isAuthenticated) {
+            onRegisterSuccess()
+        }
+    }
 
     Box(
         modifier = modifier
@@ -201,11 +216,33 @@ fun RegisterScreen(
                     )
 
                     Spacer(modifier = Modifier.height(28.dp))
+                    
+                    // Error Message
+                    authState.error?.let { error ->
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 16.dp),
+                            colors = CardDefaults.cardColors(containerColor = Red.copy(alpha = 0.1f)),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text(
+                                text = error,
+                                color = Red,
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(12.dp),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
 
                     // Email Input
                     OutlinedTextField(
                         value = email,
-                        onValueChange = { email = it },
+                        onValueChange = { 
+                            email = it
+                            authViewModel.clearError()
+                        },
                         label = { Text("Email") },
                         leadingIcon = {
                             Icon(
@@ -215,6 +252,7 @@ fun RegisterScreen(
                             )
                         },
                         singleLine = true,
+                        enabled = !authState.isLoading,
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Email,
                             imeAction = ImeAction.Next
@@ -236,7 +274,10 @@ fun RegisterScreen(
                     // Password Input
                     OutlinedTextField(
                         value = password,
-                        onValueChange = { password = it },
+                        onValueChange = { 
+                            password = it
+                            authViewModel.clearError()
+                        },
                         label = { Text("Password") },
                         leadingIcon = {
                             Icon(
@@ -255,6 +296,7 @@ fun RegisterScreen(
                             }
                         },
                         singleLine = true,
+                        enabled = !authState.isLoading,
                         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Password,
@@ -277,7 +319,10 @@ fun RegisterScreen(
                     // Confirm Password Input
                     OutlinedTextField(
                         value = confirmPassword,
-                        onValueChange = { confirmPassword = it },
+                        onValueChange = { 
+                            confirmPassword = it
+                            authViewModel.clearError()
+                        },
                         label = { Text("Confirm Password") },
                         leadingIcon = {
                             Icon(
@@ -296,6 +341,7 @@ fun RegisterScreen(
                             }
                         },
                         singleLine = true,
+                        enabled = !authState.isLoading,
                         visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Password,
@@ -317,7 +363,8 @@ fun RegisterScreen(
 
                     // Register Button
                     Button(
-                        onClick = { onRegisterClick(email, password, confirmPassword) },
+                        onClick = { authViewModel.register(email, password, confirmPassword) },
+                        enabled = !authState.isLoading,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(60.dp),
@@ -325,18 +372,26 @@ fun RegisterScreen(
                         colors = ButtonDefaults.buttonColors(containerColor = GreenPrimary),
                         elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
                     ) {
-                        Text(
-                            text = "Create Account",
-                            fontSize = 17.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = White
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                            contentDescription = null,
-                            tint = White
-                        )
+                        if (authState.isLoading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = White,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text(
+                                text = "Create Account",
+                                fontSize = 17.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = White
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                                contentDescription = null,
+                                tint = White
+                            )
+                        }
                     }
                 }
             }
@@ -408,6 +463,6 @@ fun RegisterScreen(
 @Composable
 fun RegisterScreenPreview() {
     EatsBuddyTheme {
-        RegisterScreen()
+        // Preview without ViewModel
     }
 }
