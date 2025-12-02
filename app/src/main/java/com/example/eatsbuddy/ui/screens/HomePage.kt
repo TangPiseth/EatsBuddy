@@ -18,20 +18,18 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.ThumbUp
-import androidx.compose.material.icons.filled.Place
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -47,128 +45,101 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.eatsbuddy.ui.components.CategoryItem
-import com.example.eatsbuddy.ui.components.FeaturedRestaurantCard
-import com.example.eatsbuddy.ui.components.FoodCategory
-import com.example.eatsbuddy.ui.components.Restaurant
-import com.example.eatsbuddy.ui.components.RestaurantCard
 import com.example.eatsbuddy.ui.components.SearchBar
 import com.example.eatsbuddy.ui.components.SectionHeader
 import com.example.eatsbuddy.ui.theme.EatsBuddyTheme
 import com.example.eatsbuddy.ui.theme.GreenLight
 import com.example.eatsbuddy.ui.theme.GreenPrimary
 import com.example.eatsbuddy.ui.theme.Orange
-import com.example.eatsbuddy.ui.theme.Red
+
+// Data class for quick access features
+data class QuickAccessFeature(
+    val title: String,
+    val subtitle: String,
+    val icon: ImageVector,
+    val backgroundColor: Color
+)
+
+// Data class for recipe categories
+data class RecipeCategory(
+    val name: String,
+    val emoji: String,
+    val color: Color
+)
+
+// Data class for recipe preview
+data class RecipePreview(
+    val id: Int,
+    val name: String,
+    val category: String,
+    val rating: Float,
+    val prepTime: String,
+    val isFavorite: Boolean = false
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomePage(
     onProfileClick: () -> Unit = {},
+    onRecipesClick: () -> Unit = {},
+    onMealPlannerClick: () -> Unit = {},
+    onGroceryListClick: () -> Unit = {},
+    onSearchClick: () -> Unit = {},
+    onRecipeClick: (Int) -> Unit = {},
+    onCategoryClick: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var searchQuery by remember { mutableStateOf("") }
 
-    val categories = remember {
+    // Quick access features for the 3 main pages
+    val quickAccessFeatures = remember {
         listOf(
-            FoodCategory("All", Icons.Default.Home, GreenPrimary),
-            FoodCategory("Pizza", Icons.Default.Favorite, Orange),
-            FoodCategory("Burger", Icons.Default.Star, Red),
-            FoodCategory("Asian", Icons.Default.ThumbUp, GreenLight),
-            FoodCategory("Coffee", Icons.Default.ShoppingCart, Color(0xFF795548)),
-            FoodCategory("Dessert", Icons.Default.Favorite, Color(0xFFE91E63)),
-            FoodCategory("Fast Food", Icons.Default.Place, Color(0xFFFF5722)),
-            FoodCategory("Drinks", Icons.Default.Info, Color(0xFF9C27B0))
-        )
-    }
-
-    val featuredRestaurants = remember {
-        listOf(
-            Restaurant(
-                id = 1,
-                name = "Green Garden Bistro",
-                cuisine = "Healthy • Organic • Salads",
-                rating = 4.8f,
-                reviewCount = 256,
-                distance = "0.5 km",
-                priceRange = "$$",
-                imageUrl = "",
-                isOpen = true
+            QuickAccessFeature(
+                title = "Recipes",
+                subtitle = "Browse & Save",
+                icon = Icons.Default.Search,
+                backgroundColor = GreenPrimary
             ),
-            Restaurant(
-                id = 2,
-                name = "Sakura Japanese",
-                cuisine = "Japanese • Sushi • Ramen",
-                rating = 4.7f,
-                reviewCount = 189,
-                distance = "1.2 km",
-                priceRange = "$$$",
-                imageUrl = "",
-                isOpen = true
+            QuickAccessFeature(
+                title = "Meal Planner",
+                subtitle = "Plan Your Week",
+                icon = Icons.Default.DateRange,
+                backgroundColor = Orange
             ),
-            Restaurant(
-                id = 3,
-                name = "Mama's Italian Kitchen",
-                cuisine = "Italian • Pizza • Pasta",
-                rating = 4.6f,
-                reviewCount = 342,
-                distance = "0.8 km",
-                priceRange = "$$",
-                imageUrl = "",
-                isOpen = true
+            QuickAccessFeature(
+                title = "Grocery List",
+                subtitle = "Shop Smart",
+                icon = Icons.Default.ShoppingCart,
+                backgroundColor = GreenLight
             )
         )
     }
 
-    val nearbyRestaurants = remember {
+    // Recipe categories
+    val recipeCategories = remember {
         listOf(
-            Restaurant(
-                id = 4,
-                name = "The Breakfast Club",
-                cuisine = "American • Breakfast • Brunch",
-                rating = 4.5f,
-                reviewCount = 178,
-                distance = "0.3 km",
-                priceRange = "$",
-                imageUrl = "",
-                isOpen = true
-            ),
-            Restaurant(
-                id = 5,
-                name = "Spice Route",
-                cuisine = "Indian • Curry • Tandoori",
-                rating = 4.4f,
-                reviewCount = 215,
-                distance = "0.6 km",
-                priceRange = "$$",
-                imageUrl = "",
-                isOpen = true
-            ),
-            Restaurant(
-                id = 6,
-                name = "Taco Fiesta",
-                cuisine = "Mexican • Tacos • Burritos",
-                rating = 4.3f,
-                reviewCount = 167,
-                distance = "0.9 km",
-                priceRange = "$",
-                imageUrl = "",
-                isOpen = false
-            ),
-            Restaurant(
-                id = 7,
-                name = "Seoul Kitchen",
-                cuisine = "Korean • BBQ • Kimchi",
-                rating = 4.6f,
-                reviewCount = 198,
-                distance = "1.1 km",
-                priceRange = "$$",
-                imageUrl = "",
-                isOpen = true
-            )
+            RecipeCategory("Breakfast", "🍳", Color(0xFFFFB74D)),
+            RecipeCategory("Lunch", "🥗", Color(0xFF81C784)),
+            RecipeCategory("Dinner", "🍝", Color(0xFF64B5F6)),
+            RecipeCategory("Dessert", "🍰", Color(0xFFF48FB1)),
+            RecipeCategory("Snacks", "🍿", Color(0xFFFFD54F)),
+            RecipeCategory("Drinks", "🥤", Color(0xFF4DD0E1))
+        )
+    }
+
+    // Sample popular recipes
+    val popularRecipes = remember {
+        listOf(
+            RecipePreview(1, "Spaghetti Carbonara", "Italian", 4.8f, "30 min", true),
+            RecipePreview(2, "Chicken Stir Fry", "Asian", 4.5f, "25 min", false),
+            RecipePreview(3, "Greek Salad", "Mediterranean", 4.6f, "15 min", true),
+            RecipePreview(4, "Banana Pancakes", "Breakfast", 4.7f, "20 min", false)
         )
     }
 
@@ -176,59 +147,32 @@ fun HomePage(
         topBar = {
             TopAppBar(
                 title = {
-                    Column {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = "📍 Current Location",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
+                            text = "🍽️",
+                            fontSize = 24.sp
                         )
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "Phnom Penh, Cambodia",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onPrimary
-                            )
-                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "EatsBuddy",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /* Handle notifications */ }) {
-                        BadgedBox(
-                            badge = {
-                                Badge(
-                                    containerColor = Orange
-                                ) {
-                                    Text("3")
-                                }
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Notifications,
-                                contentDescription = "Notifications",
-                                tint = MaterialTheme.colorScheme.onPrimary
-                            )
-                        }
-                    }
-                    
-                    Spacer(modifier = Modifier.width(8.dp))
-                    
                     // Profile avatar
                     Box(
                         modifier = Modifier
-                            .padding(end = 8.dp)
+                            .padding(end = 12.dp)
                             .size(40.dp)
                             .clip(CircleShape)
                             .background(Color.White)
                             .clickable { onProfileClick() },
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = "👤",
-                            fontSize = 20.sp
-                        )
+                        Text(text = "👤", fontSize = 20.sp)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -244,7 +188,7 @@ fun HomePage(
                 .padding(paddingValues),
             contentPadding = PaddingValues(bottom = 24.dp)
         ) {
-            // Welcome Banner
+            // Welcome Banner with Search
             item {
                 Box(
                     modifier = Modifier
@@ -263,14 +207,14 @@ fun HomePage(
                 ) {
                     Column {
                         Text(
-                            text = "Good Morning! 👋",
+                            text = "Welcome Back! 👋",
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold,
                             color = Color.White
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "What would you like to eat today?",
+                            text = "What would you like to cook today?",
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.White.copy(alpha = 0.9f)
                         )
@@ -283,15 +227,40 @@ fun HomePage(
                 }
             }
 
-            // Categories
+            // Quick Access Cards - Main Features
             item {
-                Column(
-                    modifier = Modifier.padding(horizontal = 20.dp)
-                ) {
+                Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+                    SectionHeader(title = "Quick Access")
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        quickAccessFeatures.forEachIndexed { index, feature ->
+                            QuickAccessCard(
+                                feature = feature,
+                                onClick = {
+                                    when (index) {
+                                        0 -> onRecipesClick()
+                                        1 -> onMealPlannerClick()
+                                        2 -> onGroceryListClick()
+                                    }
+                                },
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+
+            // Recipe Categories
+            item {
+                Column(modifier = Modifier.padding(horizontal = 20.dp)) {
                     SectionHeader(
-                        title = "Categories",
+                        title = "Categories 🍴",
                         actionText = "See All",
-                        onActionClick = { /* Navigate to categories */ }
+                        onActionClick = onRecipesClick
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                 }
@@ -299,28 +268,26 @@ fun HomePage(
 
             item {
                 LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    contentPadding = PaddingValues(horizontal = 12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(horizontal = 20.dp)
                 ) {
-                    items(categories) { category ->
-                        CategoryItem(
+                    items(recipeCategories) { category ->
+                        RecipeCategoryChip(
                             category = category,
-                            onClick = { /* Handle category click */ }
+                            onClick = { onCategoryClick(category.name) }
                         )
                     }
                 }
                 Spacer(modifier = Modifier.height(24.dp))
             }
 
-            // Featured Restaurants
+            // Popular Recipes
             item {
-                Column(
-                    modifier = Modifier.padding(horizontal = 20.dp)
-                ) {
+                Column(modifier = Modifier.padding(horizontal = 20.dp)) {
                     SectionHeader(
-                        title = "Featured 🔥",
+                        title = "Popular Recipes 🔥",
                         actionText = "See All",
-                        onActionClick = { /* Navigate to featured */ }
+                        onActionClick = onRecipesClick
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                 }
@@ -331,37 +298,289 @@ fun HomePage(
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     contentPadding = PaddingValues(horizontal = 20.dp)
                 ) {
-                    items(featuredRestaurants) { restaurant ->
-                        FeaturedRestaurantCard(
-                            restaurant = restaurant,
-                            onClick = { /* Navigate to restaurant details */ }
+                    items(popularRecipes) { recipe ->
+                        RecipeCard(
+                            recipe = recipe,
+                            onClick = { onRecipeClick(recipe.id) }
                         )
                     }
                 }
                 Spacer(modifier = Modifier.height(24.dp))
             }
 
-            // Nearby Restaurants
+            // Today's Meal Plan Summary
             item {
-                Column(
-                    modifier = Modifier.padding(horizontal = 20.dp)
-                ) {
+                Column(modifier = Modifier.padding(horizontal = 20.dp)) {
                     SectionHeader(
-                        title = "Nearby You 📍",
-                        actionText = "See All",
-                        onActionClick = { /* Navigate to nearby */ }
+                        title = "Today's Plan 📅",
+                        actionText = "View All",
+                        onActionClick = onMealPlannerClick
                     )
                     Spacer(modifier = Modifier.height(12.dp))
+                    TodayMealPlanCard(onMealPlannerClick = onMealPlannerClick)
                 }
+                Spacer(modifier = Modifier.height(24.dp))
             }
 
-            items(nearbyRestaurants) { restaurant ->
-                RestaurantCard(
-                    restaurant = restaurant,
-                    onClick = { /* Navigate to restaurant details */ },
+            // Grocery List Summary
+            item {
+                Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+                    SectionHeader(
+                        title = "Grocery List 🛒",
+                        actionText = "View All",
+                        onActionClick = onGroceryListClick
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    GroceryListSummaryCard(onGroceryListClick = onGroceryListClick)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun QuickAccessCard(
+    feature: QuickAccessFeature,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .height(100.dp)
+            .clickable { onClick() },
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = feature.backgroundColor)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Icon(
+                imageVector = feature.icon,
+                contentDescription = feature.title,
+                tint = Color.White,
+                modifier = Modifier.size(28.dp)
+            )
+            Column {
+                Text(
+                    text = feature.title,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+                Text(
+                    text = feature.subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.White.copy(alpha = 0.8f)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun RecipeCategoryChip(
+    category: RecipeCategory,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.clickable { onClick() },
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = category.color.copy(alpha = 0.2f))
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Text(text = category.emoji, fontSize = 18.sp)
+            Text(
+                text = category.name,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
+    }
+}
+
+@Composable
+fun RecipeCard(
+    recipe: RecipePreview,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .width(180.dp)
+            .clickable { onClick() },
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column {
+            // Recipe Image Placeholder
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(100.dp)
+                    .background(GreenLight.copy(alpha = 0.3f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(text = "🍽️", fontSize = 40.sp)
+                // Favorite icon
+                Icon(
+                    imageVector = if (recipe.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                    contentDescription = "Favorite",
+                    tint = if (recipe.isFavorite) Color.Red else Color.Gray,
                     modifier = Modifier
-                        .padding(horizontal = 20.dp)
-                        .padding(bottom = 16.dp)
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp)
+                        .size(24.dp)
+                )
+            }
+            Column(modifier = Modifier.padding(12.dp)) {
+                Text(
+                    text = recipe.name,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = recipe.category,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Star,
+                            contentDescription = "Rating",
+                            tint = Orange,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = recipe.rating.toString(),
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                    Text(
+                        text = recipe.prepTime,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun TodayMealPlanCard(
+    onMealPlannerClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable { onMealPlannerClick() },
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Orange.copy(alpha = 0.1f))
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "No meals planned for today",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Tap to add breakfast, lunch & dinner",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .size(50.dp)
+                    .clip(CircleShape)
+                    .background(Orange),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.DateRange,
+                    contentDescription = "Plan",
+                    tint = Color.White,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun GroceryListSummaryCard(
+    onGroceryListClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable { onGroceryListClick() },
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = GreenPrimary.copy(alpha = 0.1f))
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Your grocery list is empty",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Add items from recipes or manually",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .size(50.dp)
+                    .clip(CircleShape)
+                    .background(GreenPrimary),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ShoppingCart,
+                    contentDescription = "Grocery",
+                    tint = Color.White,
+                    modifier = Modifier.size(24.dp)
                 )
             }
         }
@@ -373,5 +592,39 @@ fun HomePage(
 fun HomePagePreview() {
     EatsBuddyTheme {
         HomePage()
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun QuickAccessCardPreview() {
+    EatsBuddyTheme {
+        QuickAccessCard(
+            feature = QuickAccessFeature(
+                title = "Recipes",
+                subtitle = "Browse & Save",
+                icon = Icons.Default.Search,
+                backgroundColor = GreenPrimary
+            ),
+            onClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun RecipeCardPreview() {
+    EatsBuddyTheme {
+        RecipeCard(
+            recipe = RecipePreview(
+                id = 1,
+                name = "Spaghetti Carbonara",
+                category = "Italian",
+                rating = 4.8f,
+                prepTime = "30 min",
+                isFavorite = true
+            ),
+            onClick = {}
+        )
     }
 }
