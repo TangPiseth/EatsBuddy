@@ -49,6 +49,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import com.example.eatsbuddy.ui.components.BottomNavigationBar
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -98,6 +99,8 @@ fun HomePage(
     onSearchClick: () -> Unit = {},
     onRecipeClick: (Int) -> Unit = {},
     onCategoryClick: (String) -> Unit = {},
+    currentRoute: String = "home",
+    onNavigate: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var searchQuery by remember { mutableStateOf("") }
@@ -203,6 +206,12 @@ fun HomePage(
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary
                 )
+            )
+        },
+        bottomBar = {
+            BottomNavigationBar(
+                currentRoute = currentRoute,
+                onNavigate = onNavigate
             )
         },
         containerColor = MaterialTheme.colorScheme.background

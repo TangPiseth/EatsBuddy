@@ -55,6 +55,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.eatsbuddy.ui.components.BottomNavigationBar
 import com.example.eatsbuddy.ui.theme.EatsBuddyTheme
 import com.example.eatsbuddy.ui.theme.GreenLight
 import com.example.eatsbuddy.ui.theme.GreenPrimary
@@ -101,6 +102,8 @@ enum class MealTime(val displayName: String, val emoji: String, val color: Color
 @Composable
 fun MealPlannerPage(
     onBackClick: () -> Unit = {},
+    currentRoute: String = "mealPlanner",
+    onNavigate: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val today = remember { SimpleDate.today() }
@@ -134,6 +137,12 @@ fun MealPlannerPage(
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary
                 )
+            )
+        },
+        bottomBar = {
+            BottomNavigationBar(
+                currentRoute = currentRoute,
+                onNavigate = onNavigate
             )
         },
         containerColor = MaterialTheme.colorScheme.background

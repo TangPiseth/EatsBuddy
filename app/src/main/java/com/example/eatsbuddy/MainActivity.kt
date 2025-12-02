@@ -14,12 +14,19 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.eatsbuddy.ui.components.BottomNavigationBar
+import com.example.eatsbuddy.ui.screens.ContactPage
+import com.example.eatsbuddy.ui.screens.FAQPage
 import com.example.eatsbuddy.ui.screens.GroceryListPage
 import com.example.eatsbuddy.ui.screens.HomePage
+import com.example.eatsbuddy.ui.screens.LegalsPage
 import com.example.eatsbuddy.ui.screens.LoginScreen
 import com.example.eatsbuddy.ui.screens.MealPlannerPage
+import com.example.eatsbuddy.ui.screens.MorePage
 import com.example.eatsbuddy.ui.screens.ProfileScreen
 import com.example.eatsbuddy.ui.screens.ProfileSetupScreen
+import com.example.eatsbuddy.ui.screens.RecipeDetailsPage
+import com.example.eatsbuddy.ui.screens.RecipesPage
 import com.example.eatsbuddy.ui.screens.RegisterScreen
 import com.example.eatsbuddy.ui.theme.EatsBuddyTheme
 import com.example.eatsbuddy.viewmodel.AuthViewModel
@@ -60,7 +67,7 @@ fun EatsBuddyApp() {
                     }
                 },
                 onRecipesClick = {
-                    // TODO: Navigate to recipes page
+                    navController.navigate("recipes")
                 },
                 onMealPlannerClick = {
                     navController.navigate("mealPlanner")
@@ -69,13 +76,20 @@ fun EatsBuddyApp() {
                     navController.navigate("groceryList")
                 },
                 onSearchClick = {
-                    // TODO: Handle search
+                    navController.navigate("recipes")
                 },
                 onRecipeClick = { recipeId ->
-                    // TODO: Navigate to recipe details
+                    navController.navigate("recipeDetails/$recipeId")
                 },
                 onCategoryClick = { category ->
-                    // TODO: Navigate to category filtered recipes
+                    navController.navigate("recipes?category=$category")
+                },
+                currentRoute = "home",
+                onNavigate = { route ->
+                    navController.navigate(route) {
+                        popUpTo("home") { inclusive = false }
+                        launchSingleTop = true
+                    }
                 }
             )
         }
@@ -84,6 +98,13 @@ fun EatsBuddyApp() {
             MealPlannerPage(
                 onBackClick = {
                     navController.popBackStack()
+                },
+                currentRoute = "mealPlanner",
+                onNavigate = { route ->
+                    navController.navigate(route) {
+                        popUpTo("home") { inclusive = false }
+                        launchSingleTop = true
+                    }
                 }
             )
         }
@@ -92,6 +113,65 @@ fun EatsBuddyApp() {
             GroceryListPage(
                 onBackClick = {
                     navController.popBackStack()
+                },
+                currentRoute = "groceryList",
+                onNavigate = { route ->
+                    navController.navigate(route) {
+                        popUpTo("home") { inclusive = false }
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+        
+        composable("recipes") {
+            RecipesPage(
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onRecipeClick = { recipeId ->
+                    navController.navigate("recipeDetails/$recipeId")
+                },
+                currentRoute = "recipes",
+                onNavigate = { route ->
+                    navController.navigate(route) {
+                        popUpTo("home") { inclusive = false }
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+        
+        composable("recipes?category={category}") { backStackEntry ->
+            val category = backStackEntry.arguments?.getString("category")
+            RecipesPage(
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onRecipeClick = { recipeId ->
+                    navController.navigate("recipeDetails/$recipeId")
+                },
+                initialCategory = category,
+                currentRoute = "recipes",
+                onNavigate = { route ->
+                    navController.navigate(route) {
+                        popUpTo("home") { inclusive = false }
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+        
+        composable("recipeDetails/{recipeId}") { backStackEntry ->
+            val recipeId = backStackEntry.arguments?.getString("recipeId")?.toIntOrNull() ?: 1
+            RecipeDetailsPage(
+                recipeId = recipeId,
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onAddToGroceryList = { ingredients ->
+                    // In a real app, you'd add these to a shared grocery list state/database
+                    navController.navigate("groceryList")
                 }
             )
         }
@@ -178,6 +258,45 @@ fun EatsBuddyApp() {
                     navController.navigate("home") {
                         popUpTo("home") { inclusive = true }
                     }
+                }
+            )
+        }
+        
+        composable("more") {
+            MorePage(
+                currentRoute = "more",
+                onNavigate = { route ->
+                    navController.navigate(route) {
+                        popUpTo("home") { inclusive = false }
+                        launchSingleTop = true
+                    }
+                },
+                onMenuItemClick = { route ->
+                    navController.navigate(route)
+                }
+            )
+        }
+        
+        composable("faq") {
+            FAQPage(
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+        
+        composable("legals") {
+            LegalsPage(
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+        
+        composable("contact") {
+            ContactPage(
+                onBackClick = {
+                    navController.popBackStack()
                 }
             )
         }

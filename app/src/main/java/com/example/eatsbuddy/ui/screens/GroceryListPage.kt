@@ -63,6 +63,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.eatsbuddy.ui.components.BottomNavigationBar
 import com.example.eatsbuddy.ui.theme.EatsBuddyTheme
 import com.example.eatsbuddy.ui.theme.GreenLight
 import com.example.eatsbuddy.ui.theme.GreenPrimary
@@ -98,6 +99,8 @@ enum class GroceryCategory(
 @Composable
 fun GroceryListPage(
     onBackClick: () -> Unit = {},
+    currentRoute: String = "groceryList",
+    onNavigate: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var groceryItems by remember { mutableStateOf<List<GroceryItem>>(emptyList()) }
@@ -158,6 +161,12 @@ fun GroceryListPage(
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary
                 )
+            )
+        },
+        bottomBar = {
+            BottomNavigationBar(
+                currentRoute = currentRoute,
+                onNavigate = onNavigate
             )
         },
         floatingActionButton = {
