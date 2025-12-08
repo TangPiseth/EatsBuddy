@@ -15,6 +15,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.eatsbuddy.ui.components.BottomNavigationBar
+import com.example.eatsbuddy.ui.screens.ApiRecipeDetailsPage
+import com.example.eatsbuddy.ui.screens.ApiRecipesPage
 import com.example.eatsbuddy.ui.screens.ContactPage
 import com.example.eatsbuddy.ui.screens.FAQPage
 import com.example.eatsbuddy.ui.screens.GroceryListPage
@@ -25,11 +27,10 @@ import com.example.eatsbuddy.ui.screens.MealPlannerPage
 import com.example.eatsbuddy.ui.screens.MorePage
 import com.example.eatsbuddy.ui.screens.ProfileScreen
 import com.example.eatsbuddy.ui.screens.ProfileSetupScreen
-import com.example.eatsbuddy.ui.screens.RecipeDetailsPage
-import com.example.eatsbuddy.ui.screens.RecipesPage
 import com.example.eatsbuddy.ui.screens.RegisterScreen
 import com.example.eatsbuddy.ui.theme.EatsBuddyTheme
 import com.example.eatsbuddy.viewmodel.AuthViewModel
+import com.example.eatsbuddy.viewmodel.RecipeViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,7 +50,9 @@ class MainActivity : ComponentActivity() {
 fun EatsBuddyApp() {
     val navController = rememberNavController()
     val authViewModel: AuthViewModel = viewModel()
+    val recipeViewModel: RecipeViewModel = viewModel()
     val authState by authViewModel.authState.collectAsState()
+    val homeState by recipeViewModel.homeState.collectAsState()
     
     NavHost(
         navController = navController,
@@ -59,6 +62,9 @@ fun EatsBuddyApp() {
             HomePage(
                 userProfile = authState.userProfile,
                 isAuthenticated = authState.isAuthenticated,
+                popularMeals = homeState.popularMeals,
+                categories = homeState.categories,
+                isLoadingMeals = homeState.isLoading,
                 onProfileClick = {
                     if (authState.isAuthenticated) {
                         navController.navigate("profile")
@@ -83,6 +89,9 @@ fun EatsBuddyApp() {
                 },
                 onCategoryClick = { category ->
                     navController.navigate("recipes?category=$category")
+                },
+                onFavoriteClick = { mealId ->
+                    recipeViewModel.toggleFavorite(mealId)
                 },
                 currentRoute = "home",
                 onNavigate = { route ->
@@ -125,12 +134,13 @@ fun EatsBuddyApp() {
         }
         
         composable("recipes") {
-            RecipesPage(
+            ApiRecipesPage(
+                viewModel = recipeViewModel,
                 onBackClick = {
                     navController.popBackStack()
                 },
-                onRecipeClick = { recipeId ->
-                    navController.navigate("recipeDetails/$recipeId")
+                onRecipeClick = { mealId ->
+                    navController.navigate("recipeDetails/$mealId")
                 },
                 currentRoute = "recipes",
                 onNavigate = { route ->
@@ -144,12 +154,13 @@ fun EatsBuddyApp() {
         
         composable("recipes?category={category}") { backStackEntry ->
             val category = backStackEntry.arguments?.getString("category")
-            RecipesPage(
+            ApiRecipesPage(
+                viewModel = recipeViewModel,
                 onBackClick = {
                     navController.popBackStack()
                 },
-                onRecipeClick = { recipeId ->
-                    navController.navigate("recipeDetails/$recipeId")
+                onRecipeClick = { mealId ->
+                    navController.navigate("recipeDetails/$mealId")
                 },
                 initialCategory = category,
                 currentRoute = "recipes",
@@ -163,9 +174,10 @@ fun EatsBuddyApp() {
         }
         
         composable("recipeDetails/{recipeId}") { backStackEntry ->
-            val recipeId = backStackEntry.arguments?.getString("recipeId")?.toIntOrNull() ?: 1
-            RecipeDetailsPage(
-                recipeId = recipeId,
+            val mealId = backStackEntry.arguments?.getString("recipeId") ?: ""
+            ApiRecipeDetailsPage(
+                mealId = mealId,
+                viewModel = recipeViewModel,
                 onBackClick = {
                     navController.popBackStack()
                 },

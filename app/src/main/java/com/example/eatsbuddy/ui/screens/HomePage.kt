@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -54,6 +55,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.example.eatsbuddy.data.model.Category
+import com.example.eatsbuddy.data.model.MealPreview
 import com.example.eatsbuddy.data.model.UserProfile
 import com.example.eatsbuddy.ui.components.SearchBar
 import com.example.eatsbuddy.ui.components.SectionHeader
@@ -92,13 +95,17 @@ data class RecipePreview(
 fun HomePage(
     userProfile: UserProfile? = null,
     isAuthenticated: Boolean = false,
+    popularMeals: List<MealPreview> = emptyList(),
+    categories: List<Category> = emptyList(),
+    isLoadingMeals: Boolean = false,
     onProfileClick: () -> Unit = {},
     onRecipesClick: () -> Unit = {},
     onMealPlannerClick: () -> Unit = {},
     onGroceryListClick: () -> Unit = {},
     onSearchClick: () -> Unit = {},
-    onRecipeClick: (Int) -> Unit = {},
+    onRecipeClick: (String) -> Unit = {},
     onCategoryClick: (String) -> Unit = {},
+    onFavoriteClick: (String) -> Unit = {},
     currentRoute: String = "home",
     onNavigate: (String) -> Unit = {},
     modifier: Modifier = Modifier
@@ -138,16 +145,6 @@ fun HomePage(
             RecipeCategory("Dessert", "🍰", Color(0xFFF48FB1)),
             RecipeCategory("Snacks", "🍿", Color(0xFFFFD54F)),
             RecipeCategory("Drinks", "🥤", Color(0xFF4DD0E1))
-        )
-    }
-
-    // Sample popular recipes
-    val popularRecipes = remember {
-        listOf(
-            RecipePreview(1, "Spaghetti Carbonara", "Italian", 4.8f, "30 min", true),
-            RecipePreview(2, "Chicken Stir Fry", "Asian", 4.5f, "25 min", false),
-            RecipePreview(3, "Greek Salad", "Mediterranean", 4.6f, "15 min", true),
-            RecipePreview(4, "Banana Pancakes", "Breakfast", 4.7f, "20 min", false)
         )
     }
 
@@ -318,7 +315,7 @@ fun HomePage(
                 Spacer(modifier = Modifier.height(24.dp))
             }
 
-            // Popular Recipes
+            // Popular Recipes from API
             item {
                 Column(modifier = Modifier.padding(horizontal = 20.dp)) {
                     SectionHeader(
@@ -331,15 +328,40 @@ fun HomePage(
             }
 
             item {
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    contentPadding = PaddingValues(horizontal = 20.dp)
-                ) {
-                    items(popularRecipes) { recipe ->
-                        RecipeCard(
-                            recipe = recipe,
-                            onClick = { onRecipeClick(recipe.id) }
+                if (isLoadingMeals) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(160.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = GreenPrimary)
+                    }
+                } else if (popularMeals.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "No recipes available",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
+                    }
+                } else {
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        contentPadding = PaddingValues(horizontal = 20.dp)
+                    ) {
+                        items(popularMeals) { meal ->
+                            PopularMealCard(
+                                meal = meal,
+                                onClick = { onRecipeClick(meal.id) },
+                                onFavoriteClick = { onFavoriteClick(meal.id) }
+                            )
+                        }
                     }
                 }
                 Spacer(modifier = Modifier.height(24.dp))
@@ -519,6 +541,83 @@ fun RecipeCard(
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun PopularMealCard(
+    meal: MealPreview,
+    onClick: () -> Unit,
+    onFavoriteClick: () -> Unit = {},
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .width(180.dp)
+            .clickable { onClick() },
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column {
+            // Meal Image from API
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(120.dp)
+            ) {
+                AsyncImage(
+                    model = meal.thumbnailUrl,
+                    contentDescription = meal.name,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+                // Gradient overlay at bottom
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.3f)),
+                                startY = 50f
+                            )
+                        )
+                )
+                // Favorite icon
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp)
+                        .size(28.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.9f))
+                        .clickable { onFavoriteClick() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = if (meal.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                        contentDescription = "Favorite",
+                        tint = if (meal.isFavorite) Color.Red else Color.Gray,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+            Column(modifier = Modifier.padding(12.dp)) {
+                Text(
+                    text = meal.name,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = meal.category ?: meal.area ?: "Recipe",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = GreenPrimary
+                )
             }
         }
     }
