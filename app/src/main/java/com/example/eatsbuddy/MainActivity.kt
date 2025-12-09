@@ -15,6 +15,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.eatsbuddy.ui.components.BottomNavigationBar
+import com.example.eatsbuddy.ui.screens.AboutPage
 import com.example.eatsbuddy.ui.screens.ApiRecipeDetailsPage
 import com.example.eatsbuddy.ui.screens.ApiRecipesPage
 import com.example.eatsbuddy.ui.screens.ContactPage
@@ -83,6 +84,9 @@ fun EatsBuddyApp() {
                 },
                 onSearchClick = {
                     navController.navigate("recipes")
+                },
+                onSearchSubmit = { query ->
+                    navController.navigate("recipes?search=$query")
                 },
                 onRecipeClick = { recipeId ->
                     navController.navigate("recipeDetails/$recipeId")
@@ -163,6 +167,27 @@ fun EatsBuddyApp() {
                     navController.navigate("recipeDetails/$mealId")
                 },
                 initialCategory = category,
+                currentRoute = "recipes",
+                onNavigate = { route ->
+                    navController.navigate(route) {
+                        popUpTo("home") { inclusive = false }
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+        
+        composable("recipes?search={search}") { backStackEntry ->
+            val searchQuery = backStackEntry.arguments?.getString("search") ?: ""
+            ApiRecipesPage(
+                viewModel = recipeViewModel,
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onRecipeClick = { mealId ->
+                    navController.navigate("recipeDetails/$mealId")
+                },
+                initialSearchQuery = searchQuery,
                 currentRoute = "recipes",
                 onNavigate = { route ->
                     navController.navigate(route) {
@@ -307,6 +332,14 @@ fun EatsBuddyApp() {
         
         composable("contact") {
             ContactPage(
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+        
+        composable("about") {
+            AboutPage(
                 onBackClick = {
                     navController.popBackStack()
                 }

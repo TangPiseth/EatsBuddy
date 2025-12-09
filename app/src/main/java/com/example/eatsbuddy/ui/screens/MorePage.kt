@@ -80,6 +80,13 @@ fun MorePage(
             icon = Icons.Default.Email,
             emoji = "📧",
             route = "contact"
+        ),
+        MoreMenuItem(
+            title = "About",
+            subtitle = "Meet the team & tech behind the app",
+            icon = Icons.Default.Info,
+            emoji = "💡",
+            route = "about"
         )
     )
 

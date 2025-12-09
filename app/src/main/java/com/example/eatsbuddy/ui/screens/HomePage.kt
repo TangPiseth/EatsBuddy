@@ -103,6 +103,7 @@ fun HomePage(
     onMealPlannerClick: () -> Unit = {},
     onGroceryListClick: () -> Unit = {},
     onSearchClick: () -> Unit = {},
+    onSearchSubmit: (String) -> Unit = {},
     onRecipeClick: (String) -> Unit = {},
     onCategoryClick: (String) -> Unit = {},
     onFavoriteClick: (String) -> Unit = {},
@@ -255,7 +256,8 @@ fun HomePage(
                         Spacer(modifier = Modifier.height(20.dp))
                         SearchBar(
                             query = searchQuery,
-                            onQueryChange = { searchQuery = it }
+                            onQueryChange = { searchQuery = it },
+                            onSearch = { query -> onSearchSubmit(query) }
                         )
                     }
                 }
@@ -609,7 +611,7 @@ fun PopularMealCard(
                     text = meal.name,
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
-                    maxLines = 2,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 Spacer(modifier = Modifier.height(4.dp))
