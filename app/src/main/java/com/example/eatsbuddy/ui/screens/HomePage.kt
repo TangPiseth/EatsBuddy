@@ -103,7 +103,6 @@ fun HomePage(
     onMealPlannerClick: () -> Unit = {},
     onGroceryListClick: () -> Unit = {},
     onSearchClick: () -> Unit = {},
-    onSearchSubmit: (String) -> Unit = {},
     onRecipeClick: (String) -> Unit = {},
     onCategoryClick: (String) -> Unit = {},
     onFavoriteClick: (String) -> Unit = {},
@@ -137,16 +136,50 @@ fun HomePage(
         )
     }
 
-    // Recipe categories
-    val recipeCategories = remember {
+    // Color palette for categories
+    val categoryColors = remember {
         listOf(
-            RecipeCategory("Breakfast", "🍳", Color(0xFFFFB74D)),
-            RecipeCategory("Lunch", "🥗", Color(0xFF81C784)),
-            RecipeCategory("Dinner", "🍝", Color(0xFF64B5F6)),
-            RecipeCategory("Dessert", "🍰", Color(0xFFF48FB1)),
-            RecipeCategory("Snacks", "🍿", Color(0xFFFFD54F)),
-            RecipeCategory("Drinks", "🥤", Color(0xFF4DD0E1))
+            Color(0xFFFFB74D), // Orange
+            Color(0xFF81C784), // Green
+            Color(0xFF64B5F6), // Blue
+            Color(0xFFF48FB1), // Pink
+            Color(0xFFFFD54F), // Yellow
+            Color(0xFF4DD0E1), // Cyan
+            Color(0xFF9575CD), // Purple
+            Color(0xFFE57373), // Red
+            Color(0xFFAED581), // Light Green
+            Color(0xFF4FC3F7), // Light Blue
+            Color(0xFFFFCC80), // Light Orange
+            Color(0xFFCE93D8), // Light Purple
+            Color(0xFF80DEEA), // Teal
+            Color(0xFFF06292)  // Pink
         )
+    }
+
+    // Get emoji for category based on name
+    fun getCategoryEmoji(categoryName: String): String {
+        return when (categoryName.lowercase()) {
+            "beef" -> "🥩"
+            "chicken" -> "🍗"
+            "dessert" -> "🍰"
+            "lamb" -> "🍖"
+            "miscellaneous" -> "🍳"
+            "pasta" -> "🍝"
+            "pork" -> "🥓"
+            "seafood" -> "🦐"
+            "side" -> "🥗"
+            "starter" -> "🥟"
+            "vegan" -> "🥬"
+            "vegetarian" -> "🥕"
+            "breakfast" -> "🍳"
+            "goat" -> "🐐"
+            else -> "🍽️"
+        }
+    }
+
+    // Shuffle categories once when they change
+    val shuffledCategories = remember(categories) {
+        categories.shuffled().take(8) // Take first 8 shuffled categories
     }
 
     Scaffold(
@@ -256,8 +289,7 @@ fun HomePage(
                         Spacer(modifier = Modifier.height(20.dp))
                         SearchBar(
                             query = searchQuery,
-                            onQueryChange = { searchQuery = it },
-                            onSearch = { query -> onSearchSubmit(query) }
+                            onQueryChange = { searchQuery = it }
                         )
                     }
                 }
@@ -290,7 +322,7 @@ fun HomePage(
                 Spacer(modifier = Modifier.height(24.dp))
             }
 
-            // Recipe Categories
+            // Recipe Categories from API
             item {
                 Column(modifier = Modifier.padding(horizontal = 20.dp)) {
                     SectionHeader(
@@ -303,15 +335,40 @@ fun HomePage(
             }
 
             item {
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    contentPadding = PaddingValues(horizontal = 20.dp)
-                ) {
-                    items(recipeCategories) { category ->
-                        RecipeCategoryChip(
-                            category = category,
-                            onClick = { onCategoryClick(category.name) }
-                        )
+                if (shuffledCategories.isEmpty()) {
+                    // Loading or empty state
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        contentPadding = PaddingValues(horizontal = 20.dp)
+                    ) {
+                        items(6) { index ->
+                            // Placeholder chips
+                            Box(
+                                modifier = Modifier
+                                    .width(100.dp)
+                                    .height(40.dp)
+                                    .clip(RoundedCornerShape(20.dp))
+                                    .background(Color.Gray.copy(alpha = 0.2f))
+                            )
+                        }
+                    }
+                } else {
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        contentPadding = PaddingValues(horizontal = 20.dp)
+                    ) {
+                        items(shuffledCategories.size) { index ->
+                            val category = shuffledCategories[index]
+                            val color = categoryColors[index % categoryColors.size]
+                            val emoji = getCategoryEmoji(category.name)
+                            
+                            ApiCategoryChip(
+                                name = category.name,
+                                emoji = emoji,
+                                color = color,
+                                onClick = { onCategoryClick(category.name) }
+                            )
+                        }
                     }
                 }
                 Spacer(modifier = Modifier.height(24.dp))
@@ -469,6 +526,35 @@ fun RecipeCategoryChip(
 }
 
 @Composable
+fun ApiCategoryChip(
+    name: String,
+    emoji: String,
+    color: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.clickable { onClick() },
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.2f))
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Text(text = emoji, fontSize = 18.sp)
+            Text(
+                text = name,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
+    }
+}
+
+@Composable
 fun RecipeCard(
     recipe: RecipePreview,
     onClick: () -> Unit,
@@ -611,7 +697,7 @@ fun PopularMealCard(
                     text = meal.name,
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
-                    maxLines = 1,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
                 Spacer(modifier = Modifier.height(4.dp))

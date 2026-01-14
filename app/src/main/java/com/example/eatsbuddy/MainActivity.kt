@@ -15,7 +15,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.eatsbuddy.ui.components.BottomNavigationBar
-import com.example.eatsbuddy.ui.screens.AboutPage
 import com.example.eatsbuddy.ui.screens.ApiRecipeDetailsPage
 import com.example.eatsbuddy.ui.screens.ApiRecipesPage
 import com.example.eatsbuddy.ui.screens.ContactPage
@@ -31,7 +30,9 @@ import com.example.eatsbuddy.ui.screens.ProfileSetupScreen
 import com.example.eatsbuddy.ui.screens.RegisterScreen
 import com.example.eatsbuddy.ui.theme.EatsBuddyTheme
 import com.example.eatsbuddy.viewmodel.AuthViewModel
+import com.example.eatsbuddy.viewmodel.GroceryViewModel
 import com.example.eatsbuddy.viewmodel.RecipeViewModel
+import com.example.eatsbuddy.viewmodel.UserDataViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,8 +53,13 @@ fun EatsBuddyApp() {
     val navController = rememberNavController()
     val authViewModel: AuthViewModel = viewModel()
     val recipeViewModel: RecipeViewModel = viewModel()
+    val groceryViewModel: GroceryViewModel = viewModel()
+    val userDataViewModel: UserDataViewModel = viewModel()
     val authState by authViewModel.authState.collectAsState()
     val homeState by recipeViewModel.homeState.collectAsState()
+    val favoritesState by recipeViewModel.favoritesState.collectAsState()
+    val groceryState by groceryViewModel.uiState.collectAsState()
+    val userDataState by userDataViewModel.state.collectAsState()
     
     NavHost(
         navController = navController,
@@ -85,9 +91,6 @@ fun EatsBuddyApp() {
                 onSearchClick = {
                     navController.navigate("recipes")
                 },
-                onSearchSubmit = { query ->
-                    navController.navigate("recipes?search=$query")
-                },
                 onRecipeClick = { recipeId ->
                     navController.navigate("recipeDetails/$recipeId")
                 },
@@ -95,6 +98,11 @@ fun EatsBuddyApp() {
                     navController.navigate("recipes?category=$category")
                 },
                 onFavoriteClick = { mealId ->
+                    // Get the meal preview for Firebase storage
+                    val meal = homeState.popularMeals.find { it.id == mealId }
+                    if (meal != null) {
+                        userDataViewModel.toggleFavorite(meal)
+                    }
                     recipeViewModel.toggleFavorite(mealId)
                 },
                 currentRoute = "home",
@@ -109,6 +117,7 @@ fun EatsBuddyApp() {
         
         composable("mealPlanner") {
             MealPlannerPage(
+                userDataViewModel = userDataViewModel,
                 onBackClick = {
                     navController.popBackStack()
                 },
@@ -124,6 +133,7 @@ fun EatsBuddyApp() {
         
         composable("groceryList") {
             GroceryListPage(
+                userDataViewModel = userDataViewModel,
                 onBackClick = {
                     navController.popBackStack()
                 },
@@ -177,37 +187,19 @@ fun EatsBuddyApp() {
             )
         }
         
-        composable("recipes?search={search}") { backStackEntry ->
-            val searchQuery = backStackEntry.arguments?.getString("search") ?: ""
-            ApiRecipesPage(
-                viewModel = recipeViewModel,
-                onBackClick = {
-                    navController.popBackStack()
-                },
-                onRecipeClick = { mealId ->
-                    navController.navigate("recipeDetails/$mealId")
-                },
-                initialSearchQuery = searchQuery,
-                currentRoute = "recipes",
-                onNavigate = { route ->
-                    navController.navigate(route) {
-                        popUpTo("home") { inclusive = false }
-                        launchSingleTop = true
-                    }
-                }
-            )
-        }
-        
         composable("recipeDetails/{recipeId}") { backStackEntry ->
             val mealId = backStackEntry.arguments?.getString("recipeId") ?: ""
             ApiRecipeDetailsPage(
                 mealId = mealId,
                 viewModel = recipeViewModel,
+                userDataViewModel = userDataViewModel,
                 onBackClick = {
                     navController.popBackStack()
                 },
                 onAddToGroceryList = { ingredients ->
-                    // In a real app, you'd add these to a shared grocery list state/database
+                    // Get the meal name for tracking
+                    val mealName = recipeViewModel.detailState.value.meal?.name ?: "Recipe"
+                    userDataViewModel.addIngredientsFromRecipe(ingredients, mealName)
                     navController.navigate("groceryList")
                 }
             )
@@ -284,6 +276,7 @@ fun EatsBuddyApp() {
                 userProfile = authState.userProfile,
                 isLoading = authState.isLoading,
                 error = authState.error,
+                favoriteMeals = userDataState.favorites,
                 onBackClick = {
                     navController.popBackStack()
                 },
@@ -295,6 +288,9 @@ fun EatsBuddyApp() {
                     navController.navigate("home") {
                         popUpTo("home") { inclusive = true }
                     }
+                },
+                onFavoriteRecipeClick = { mealId ->
+                    navController.navigate("recipeDetails/$mealId")
                 }
             )
         }
@@ -332,14 +328,6 @@ fun EatsBuddyApp() {
         
         composable("contact") {
             ContactPage(
-                onBackClick = {
-                    navController.popBackStack()
-                }
-            )
-        }
-        
-        composable("about") {
-            AboutPage(
                 onBackClick = {
                     navController.popBackStack()
                 }

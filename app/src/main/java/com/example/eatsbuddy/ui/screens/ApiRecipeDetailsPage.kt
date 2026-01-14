@@ -52,22 +52,29 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.eatsbuddy.data.model.Ingredient
 import com.example.eatsbuddy.data.model.Meal
+import com.example.eatsbuddy.data.model.MealPreview
 import com.example.eatsbuddy.ui.theme.GreenLight
 import com.example.eatsbuddy.ui.theme.GreenPrimary
 import com.example.eatsbuddy.ui.theme.Orange
 import com.example.eatsbuddy.viewmodel.RecipeViewModel
+import com.example.eatsbuddy.viewmodel.UserDataViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ApiRecipeDetailsPage(
     mealId: String,
     viewModel: RecipeViewModel,
+    userDataViewModel: UserDataViewModel,
     onBackClick: () -> Unit = {},
     onAddToGroceryList: (List<String>) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.detailState.collectAsState()
+    val userDataState by userDataViewModel.state.collectAsState()
     val uriHandler = LocalUriHandler.current
+    
+    // Check if this meal is in favorites from UserDataViewModel
+    val isFavorite = userDataState.favoriteIds.contains(mealId)
     
     // Load meal details
     LaunchedEffect(mealId) {
@@ -107,12 +114,24 @@ fun ApiRecipeDetailsPage(
                         )
                     }
                     IconButton(onClick = { 
-                        state.meal?.let { viewModel.toggleFavorite(it.id) }
+                        state.meal?.let { meal ->
+                            // Create MealPreview for favorites storage
+                            val mealPreview = MealPreview(
+                                id = meal.id,
+                                name = meal.name,
+                                thumbnailUrl = meal.thumbnailUrl,
+                                category = meal.category,
+                                area = meal.area,
+                                isFavorite = !isFavorite
+                            )
+                            userDataViewModel.toggleFavorite(mealPreview)
+                            viewModel.toggleFavorite(meal.id)
+                        }
                     }) {
                         Icon(
-                            imageVector = if (state.meal?.isFavorite == true) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                            imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                             contentDescription = "Favorite",
-                            tint = if (state.meal?.isFavorite == true) Color.Red else MaterialTheme.colorScheme.onPrimary
+                            tint = if (isFavorite) Color.Red else MaterialTheme.colorScheme.onPrimary
                         )
                     }
                 },

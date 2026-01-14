@@ -48,6 +48,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -68,45 +69,40 @@ import com.example.eatsbuddy.ui.theme.EatsBuddyTheme
 import com.example.eatsbuddy.ui.theme.GreenLight
 import com.example.eatsbuddy.ui.theme.GreenPrimary
 import com.example.eatsbuddy.ui.theme.Orange
+import com.example.eatsbuddy.viewmodel.GroceryCategoryType
+import com.example.eatsbuddy.viewmodel.GroceryItemData
+import com.example.eatsbuddy.viewmodel.UserDataViewModel
 
-// Data class for grocery item
-data class GroceryItem(
-    val id: String,
-    val name: String,
-    val quantity: String,
-    val category: GroceryCategory,
-    val isChecked: Boolean = false
-)
-
-// Categories for grocery items
-enum class GroceryCategory(
-    val displayName: String,
-    val emoji: String,
-    val color: Color
-) {
-    FRUITS_VEGETABLES("Fruits & Veggies", "🥬", Color(0xFF4CAF50)),
-    MEAT_SEAFOOD("Meat & Seafood", "🥩", Color(0xFFE57373)),
-    DAIRY_EGGS("Dairy & Eggs", "🥛", Color(0xFF64B5F6)),
-    BAKERY("Bakery", "🍞", Color(0xFFFFB74D)),
-    PANTRY("Pantry", "🥫", Color(0xFF9575CD)),
-    FROZEN("Frozen", "🧊", Color(0xFF4DD0E1)),
-    BEVERAGES("Beverages", "🥤", Color(0xFFFF8A65)),
-    SNACKS("Snacks", "🍿", Color(0xFFFFD54F)),
-    OTHER("Other", "📦", Color(0xFF90A4AE))
+// Map GroceryCategoryType to display color
+fun GroceryCategoryType.toColor(): Color {
+    return when (this) {
+        GroceryCategoryType.FRUITS_VEGETABLES -> Color(0xFF4CAF50)
+        GroceryCategoryType.MEAT_SEAFOOD -> Color(0xFFE57373)
+        GroceryCategoryType.DAIRY_EGGS -> Color(0xFF64B5F6)
+        GroceryCategoryType.BAKERY -> Color(0xFFFFB74D)
+        GroceryCategoryType.PANTRY -> Color(0xFF9575CD)
+        GroceryCategoryType.FROZEN -> Color(0xFF4DD0E1)
+        GroceryCategoryType.BEVERAGES -> Color(0xFFFF8A65)
+        GroceryCategoryType.SNACKS -> Color(0xFFFFD54F)
+        GroceryCategoryType.OTHER -> Color(0xFF90A4AE)
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GroceryListPage(
+    userDataViewModel: UserDataViewModel,
     onBackClick: () -> Unit = {},
     currentRoute: String = "groceryList",
     onNavigate: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    var groceryItems by remember { mutableStateOf<List<GroceryItem>>(emptyList()) }
+    val userDataState by userDataViewModel.state.collectAsState()
     var showAddDialog by remember { mutableStateOf(false) }
-    var selectedCategory by remember { mutableStateOf<GroceryCategory?>(null) }
     var quickAddText by remember { mutableStateOf("") }
+    var selectedCategory by remember { mutableStateOf<GroceryCategoryType?>(null) }
+    
+    val groceryItems = userDataState.groceryItems
 
     // Filter items by category if selected
     val displayedItems = if (selectedCategory != null) {
@@ -147,7 +143,7 @@ fun GroceryListPage(
                     if (checkedCount > 0) {
                         IconButton(
                             onClick = {
-                                groceryItems = groceryItems.filter { !it.isChecked }
+                                userDataViewModel.clearCheckedGroceryItems()
                             }
                         ) {
                             Icon(
@@ -205,13 +201,12 @@ fun GroceryListPage(
                     onValueChange = { quickAddText = it },
                     onAdd = {
                         if (quickAddText.isNotBlank()) {
-                            val newItem = GroceryItem(
-                                id = System.currentTimeMillis().toString(),
-                                name = quickAddText.trim(),
-                                quantity = "",
-                                category = GroceryCategory.OTHER
+                            userDataViewModel.addGroceryItem(
+                                GroceryItemData(
+                                    name = quickAddText.trim(),
+                                    category = GroceryCategoryType.OTHER
+                                )
                             )
-                            groceryItems = groceryItems + newItem
                             quickAddText = ""
                         }
                     }
@@ -244,12 +239,12 @@ fun GroceryListPage(
                             onClick = { selectedCategory = null }
                         )
                     }
-                    items(GroceryCategory.entries.toList()) { category ->
+                    items(GroceryCategoryType.entries.toList()) { category ->
                         CategoryFilterChip(
                             label = category.displayName,
                             emoji = category.emoji,
                             isSelected = selectedCategory == category,
-                            color = category.color,
+                            color = category.toColor(),
                             onClick = {
                                 selectedCategory = if (selectedCategory == category) null else category
                             }
@@ -293,20 +288,18 @@ fun GroceryListPage(
                 // Grocery Items grouped by category
                 groupedItems.forEach { (category, items) ->
                     item {
-                        CategoryHeader(category = category, itemCount = items.size)
+                        CategoryHeaderNew(category = category, itemCount = items.size)
                         Spacer(modifier = Modifier.height(8.dp))
                     }
 
                     items(items, key = { it.id }) { item ->
-                        GroceryItemCard(
+                        GroceryItemCardNew(
                             item = item,
-                            onCheckedChange = { isChecked ->
-                                groceryItems = groceryItems.map {
-                                    if (it.id == item.id) it.copy(isChecked = isChecked) else it
-                                }
+                            onCheckedChange = { _ ->
+                                userDataViewModel.toggleGroceryItemChecked(item.id)
                             },
                             onDelete = {
-                                groceryItems = groceryItems.filter { it.id != item.id }
+                                userDataViewModel.deleteGroceryItem(item.id)
                             }
                         )
                         Spacer(modifier = Modifier.height(8.dp))
@@ -327,20 +320,222 @@ fun GroceryListPage(
 
     // Add Item Dialog
     if (showAddDialog) {
-        AddGroceryItemDialog(
+        AddGroceryItemDialogNew(
             onDismiss = { showAddDialog = false },
             onConfirm = { name, quantity, category ->
-                val newItem = GroceryItem(
-                    id = System.currentTimeMillis().toString(),
-                    name = name,
-                    quantity = quantity,
-                    category = category
+                userDataViewModel.addGroceryItem(
+                    GroceryItemData(
+                        name = name,
+                        quantity = quantity,
+                        category = category
+                    )
                 )
-                groceryItems = groceryItems + newItem
                 showAddDialog = false
             }
         )
     }
+}
+
+@Composable
+fun CategoryHeaderNew(
+    category: GroceryCategoryType,
+    itemCount: Int,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(32.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(category.toColor().copy(alpha = 0.2f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(text = category.emoji, fontSize = 16.sp)
+        }
+        Spacer(modifier = Modifier.width(12.dp))
+        Text(
+            text = category.displayName,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.weight(1f))
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(12.dp))
+                .background(category.toColor().copy(alpha = 0.2f))
+                .padding(horizontal = 8.dp, vertical = 4.dp)
+        ) {
+            Text(
+                text = "$itemCount items",
+                style = MaterialTheme.typography.labelSmall,
+                color = category.toColor()
+            )
+        }
+    }
+}
+
+@Composable
+fun GroceryItemCardNew(
+    item: GroceryItemData,
+    onCheckedChange: (Boolean) -> Unit,
+    onDelete: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val backgroundColor by animateColorAsState(
+        targetValue = if (item.isChecked) 
+            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        else MaterialTheme.colorScheme.surface,
+        label = "background"
+    )
+
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = backgroundColor)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Checkbox(
+                checked = item.isChecked,
+                onCheckedChange = onCheckedChange,
+                colors = CheckboxDefaults.colors(
+                    checkedColor = item.category.toColor(),
+                    uncheckedColor = item.category.toColor().copy(alpha = 0.6f)
+                )
+            )
+            
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 8.dp)
+            ) {
+                Text(
+                    text = item.name,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium,
+                    textDecoration = if (item.isChecked) TextDecoration.LineThrough else TextDecoration.None,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                if (item.quantity.isNotBlank()) {
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = item.quantity,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    )
+                }
+                if (item.fromRecipe != null) {
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = "From: ${item.fromRecipe}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = GreenPrimary
+                    )
+                }
+            }
+            
+            IconButton(onClick = onDelete) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Delete",
+                    tint = Color.Gray
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun AddGroceryItemDialogNew(
+    onDismiss: () -> Unit,
+    onConfirm: (name: String, quantity: String, category: GroceryCategoryType) -> Unit
+) {
+    var name by remember { mutableStateOf("") }
+    var quantity by remember { mutableStateOf("") }
+    var selectedCategory by remember { mutableStateOf(GroceryCategoryType.OTHER) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "Add Item",
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Item Name") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = GreenPrimary,
+                        focusedLabelColor = GreenPrimary
+                    )
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = quantity,
+                    onValueChange = { quantity = it },
+                    label = { Text("Quantity (optional)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = GreenPrimary,
+                        focusedLabelColor = GreenPrimary
+                    )
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "Category",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(GroceryCategoryType.entries.toList()) { category ->
+                        CategoryFilterChip(
+                            label = category.displayName,
+                            emoji = category.emoji,
+                            isSelected = selectedCategory == category,
+                            color = category.toColor(),
+                            onClick = { selectedCategory = category }
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    if (name.isNotBlank()) {
+                        onConfirm(name.trim(), quantity.trim(), selectedCategory)
+                    }
+                },
+                enabled = name.isNotBlank(),
+                colors = ButtonDefaults.buttonColors(containerColor = GreenPrimary)
+            ) {
+                Text("Add")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel", color = GreenPrimary)
+            }
+        }
+    )
 }
 
 @Composable
@@ -504,120 +699,6 @@ fun CategoryFilterChip(
 }
 
 @Composable
-fun CategoryHeader(
-    category: GroceryCategory,
-    itemCount: Int,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(text = category.emoji, fontSize = 20.sp)
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = category.displayName,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Box(
-            modifier = Modifier
-                .clip(RoundedCornerShape(10.dp))
-                .background(category.color.copy(alpha = 0.2f))
-                .padding(horizontal = 8.dp, vertical = 2.dp)
-        ) {
-            Text(
-                text = itemCount.toString(),
-                style = MaterialTheme.typography.bodySmall,
-                fontWeight = FontWeight.Medium,
-                color = category.color
-            )
-        }
-    }
-}
-
-@Composable
-fun GroceryItemCard(
-    item: GroceryItem,
-    onCheckedChange: (Boolean) -> Unit,
-    onDelete: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (item.isChecked)
-                MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
-            else
-                MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Checkbox(
-                checked = item.isChecked,
-                onCheckedChange = onCheckedChange,
-                colors = CheckboxDefaults.colors(
-                    checkedColor = GreenPrimary,
-                    uncheckedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-                )
-            )
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = item.name,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium,
-                    textDecoration = if (item.isChecked) TextDecoration.LineThrough else null,
-                    color = if (item.isChecked)
-                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                    else
-                        MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                if (item.quantity.isNotBlank()) {
-                    Text(
-                        text = item.quantity,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                    )
-                }
-            }
-
-            // Category indicator
-            Box(
-                modifier = Modifier
-                    .size(8.dp)
-                    .clip(CircleShape)
-                    .background(item.category.color)
-            )
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            IconButton(
-                onClick = onDelete,
-                modifier = Modifier.size(32.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Delete",
-                    tint = Color.Red.copy(alpha = 0.6f),
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-        }
-    }
-}
-
-@Composable
 fun EmptyGroceryState(
     modifier: Modifier = Modifier
 ) {
@@ -641,177 +722,11 @@ fun EmptyGroceryState(
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Start adding items using the quick add\nor tap the + button for more options",
+                text = "Add ingredients from recipes or tap + to add items",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
         }
-    }
-}
-
-@Composable
-fun AddGroceryItemDialog(
-    onDismiss: () -> Unit,
-    onConfirm: (name: String, quantity: String, category: GroceryCategory) -> Unit
-) {
-    var itemName by remember { mutableStateOf("") }
-    var quantity by remember { mutableStateOf("") }
-    var selectedCategory by remember { mutableStateOf(GroceryCategory.OTHER) }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = "Add Grocery Item 🛒",
-                fontWeight = FontWeight.Bold
-            )
-        },
-        text = {
-            Column {
-                OutlinedTextField(
-                    value = itemName,
-                    onValueChange = { itemName = it },
-                    label = { Text("Item Name") },
-                    placeholder = { Text("e.g., Milk, Apples...") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                OutlinedTextField(
-                    value = quantity,
-                    onValueChange = { quantity = it },
-                    label = { Text("Quantity (optional)") },
-                    placeholder = { Text("e.g., 2 lbs, 1 dozen...") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = "Category",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Medium
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Category Grid
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    GroceryCategory.entries.chunked(3).forEach { rowCategories ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            rowCategories.forEach { category ->
-                                CategorySelectChip(
-                                    category = category,
-                                    isSelected = selectedCategory == category,
-                                    onClick = { selectedCategory = category },
-                                    modifier = Modifier.weight(1f)
-                                )
-                            }
-                            // Fill empty space if row is not complete
-                            repeat(3 - rowCategories.size) {
-                                Spacer(modifier = Modifier.weight(1f))
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = {
-                    if (itemName.isNotBlank()) {
-                        onConfirm(itemName.trim(), quantity.trim(), selectedCategory)
-                    }
-                },
-                enabled = itemName.isNotBlank(),
-                colors = ButtonDefaults.buttonColors(containerColor = GreenPrimary)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text("Add")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
-        }
-    )
-}
-
-@Composable
-fun CategorySelectChip(
-    category: GroceryCategory,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier.clickable { onClick() },
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isSelected) category.color else category.color.copy(alpha = 0.1f)
-        )
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(text = category.emoji, fontSize = 20.sp)
-            Text(
-                text = category.displayName,
-                style = MaterialTheme.typography.labelSmall,
-                color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GroceryListPagePreview() {
-    EatsBuddyTheme {
-        GroceryListPage()
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GroceryItemCardPreview() {
-    EatsBuddyTheme {
-        GroceryItemCard(
-            item = GroceryItem(
-                id = "1",
-                name = "Organic Milk",
-                quantity = "1 gallon",
-                category = GroceryCategory.DAIRY_EGGS,
-                isChecked = false
-            ),
-            onCheckedChange = {},
-            onDelete = {}
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun EmptyGroceryStatePreview() {
-    EatsBuddyTheme {
-        EmptyGroceryState()
     }
 }

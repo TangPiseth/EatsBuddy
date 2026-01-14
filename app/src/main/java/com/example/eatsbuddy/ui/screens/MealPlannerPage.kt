@@ -40,6 +40,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -60,6 +61,7 @@ import com.example.eatsbuddy.ui.theme.EatsBuddyTheme
 import com.example.eatsbuddy.ui.theme.GreenLight
 import com.example.eatsbuddy.ui.theme.GreenPrimary
 import com.example.eatsbuddy.ui.theme.Orange
+import com.example.eatsbuddy.viewmodel.UserDataViewModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -101,6 +103,7 @@ enum class MealTime(val displayName: String, val emoji: String, val color: Color
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MealPlannerPage(
+    userDataViewModel: UserDataViewModel,
     onBackClick: () -> Unit = {},
     currentRoute: String = "mealPlanner",
     onNavigate: (String) -> Unit = {},
@@ -110,7 +113,8 @@ fun MealPlannerPage(
     var currentYear by remember { mutableIntStateOf(today.year) }
     var currentMonth by remember { mutableIntStateOf(today.month) }
     var selectedDate by remember { mutableStateOf(today) }
-    var plannedMeals by remember { mutableStateOf<List<PlannedMeal>>(emptyList()) }
+    val userDataState by userDataViewModel.state.collectAsState()
+    val plannedMeals = userDataState.mealPlans
     var showAddMealDialog by remember { mutableStateOf(false) }
     var selectedMealTime by remember { mutableStateOf<MealTime?>(null) }
 
@@ -207,7 +211,7 @@ fun MealPlannerPage(
                             showAddMealDialog = true
                         },
                         onDeleteMeal = { mealId ->
-                            plannedMeals = plannedMeals.filter { it.id != mealId }
+                            userDataViewModel.deleteMealPlan(mealId)
                         }
                     )
                     Spacer(modifier = Modifier.height(12.dp))
@@ -232,7 +236,7 @@ fun MealPlannerPage(
                     mealTime = selectedMealTime!!,
                     mealName = mealName
                 )
-                plannedMeals = plannedMeals + newMeal
+                userDataViewModel.addMealPlan(newMeal)
                 showAddMealDialog = false
                 selectedMealTime = null
             }
@@ -601,14 +605,6 @@ private fun getCalendarDays(year: Int, month: Int): List<SimpleDate?> {
         } else {
             null
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun MealPlannerPagePreview() {
-    EatsBuddyTheme {
-        MealPlannerPage()
     }
 }
 

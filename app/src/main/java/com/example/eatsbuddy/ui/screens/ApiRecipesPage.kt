@@ -69,20 +69,17 @@ fun ApiRecipesPage(
     onBackClick: () -> Unit = {},
     onRecipeClick: (String) -> Unit = {},
     initialCategory: String? = null,
-    initialSearchQuery: String? = null,
     currentRoute: String = "recipes",
     onNavigate: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.recipesState.collectAsState()
-    var searchQuery by remember { mutableStateOf(initialSearchQuery ?: "") }
+    var searchQuery by remember { mutableStateOf("") }
     var selectedCategoryName by remember { mutableStateOf<String?>(initialCategory) }
     
     // Load initial data
-    LaunchedEffect(initialCategory, initialSearchQuery) {
-        if (initialSearchQuery != null && initialSearchQuery.isNotBlank()) {
-            viewModel.searchMeals(initialSearchQuery)
-        } else if (initialCategory != null) {
+    LaunchedEffect(initialCategory) {
+        if (initialCategory != null) {
             viewModel.filterByCategory(initialCategory)
             selectedCategoryName = initialCategory
         } else if (state.meals.isEmpty()) {
