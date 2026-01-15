@@ -349,5 +349,13 @@ fun EatsBuddyApp(themeViewModel: ThemeViewModel) {
                 }
             )
         }
+        
+        composable("about") {
+            AboutPage(
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
     }
 }
