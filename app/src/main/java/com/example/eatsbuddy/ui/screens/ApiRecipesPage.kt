@@ -27,7 +27,6 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -58,6 +57,7 @@ import coil.compose.AsyncImage
 import com.example.eatsbuddy.data.model.Category
 import com.example.eatsbuddy.data.model.MealPreview
 import com.example.eatsbuddy.ui.components.BottomNavigationBar
+import com.example.eatsbuddy.ui.components.ContentLoadingPlaceholder
 import com.example.eatsbuddy.ui.theme.GreenLight
 import com.example.eatsbuddy.ui.theme.GreenPrimary
 import com.example.eatsbuddy.viewmodel.RecipeViewModel
@@ -222,14 +222,10 @@ fun ApiRecipesPage(
             // Loading State
             if (state.isLoading) {
                 item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(color = GreenPrimary)
-                    }
+                    ContentLoadingPlaceholder(
+                        message = "Finding delicious recipes...",
+                        modifier = Modifier.height(200.dp)
+                    )
                 }
             }
             

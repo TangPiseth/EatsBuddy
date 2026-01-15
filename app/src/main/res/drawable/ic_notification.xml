@@ -1,0 +1,30 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    
+    <!-- Notification icon must be single color (white) for proper tinting -->
+    <!-- Fork (left) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M3,3 L3,10 L4,10 L4,6 L5,6 L5,10 L6,10 L6,6 L7,6 L7,10 L8,10 L8,3 L7,3 L7,5 L6,5 L6,3 L5,3 L5,5 L4,5 L4,3 Z"/>
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M4.5,10 L4.5,21 Q5.5,22 6.5,21 L6.5,10 Z"/>
+    
+    <!-- Plate (center) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M12,4 A6,6 0 1,1 12,16 A6,6 0 1,1 12,4 Z M12,6 A4,4 0 1,0 12,14 A4,4 0 1,0 12,6 Z"
+        android:fillType="evenOdd"/>
+    
+    <!-- Knife (right) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M16,3 L16,9 Q16,10 17.5,10 L21,10 L21,9 L17.5,9 Q17,9 17,8.5 L17,3 Z"/>
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M16.5,10 L16.5,21 Q18,22 19.5,21 L19.5,10 Z"/>
+    
+</vector>

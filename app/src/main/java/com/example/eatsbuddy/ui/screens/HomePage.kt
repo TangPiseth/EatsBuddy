@@ -28,7 +28,6 @@ import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -58,6 +57,7 @@ import coil.compose.AsyncImage
 import com.example.eatsbuddy.data.model.Category
 import com.example.eatsbuddy.data.model.MealPreview
 import com.example.eatsbuddy.data.model.UserProfile
+import com.example.eatsbuddy.ui.components.LoadingIndicator
 import com.example.eatsbuddy.ui.components.SearchBar
 import com.example.eatsbuddy.ui.components.SectionHeader
 import com.example.eatsbuddy.ui.theme.EatsBuddyTheme
@@ -397,7 +397,7 @@ fun HomePage(
                             .height(160.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        CircularProgressIndicator(color = GreenPrimary)
+                        LoadingIndicator(message = "Loading recipes...")
                     }
                 } else if (popularMeals.isEmpty()) {
                     Box(
@@ -703,7 +703,7 @@ fun PopularMealCard(
                     text = meal.name,
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
-                    maxLines = 2,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 Spacer(modifier = Modifier.height(4.dp))

@@ -1,0 +1,42 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    
+    <!-- Fork (left side) -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M32,28 L32,50 L34,50 L34,38 L36,38 L36,50 L38,50 L38,38 L40,38 L40,50 L42,50 L42,28 L40,28 L40,34 L38,34 L38,28 L36,28 L36,34 L34,34 L34,28 Z"/>
+    <!-- Fork handle -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M35,50 L35,80 Q37,82 39,80 L39,50 Z"/>
+    
+    <!-- Plate (center) - outer ring -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M54,30 
+            A24,24 0 1,1 54,78 
+            A24,24 0 1,1 54,30 Z
+            M54,36
+            A18,18 0 1,0 54,72
+            A18,18 0 1,0 54,36 Z"
+        android:fillType="evenOdd"/>
+    
+    <!-- Plate inner circle -->
+    <path
+        android:fillColor="#000000"
+        android:fillAlpha="0.3"
+        android:pathData="M54,42 A12,12 0 1,1 54,66 A12,12 0 1,1 54,42 Z"/>
+    
+    <!-- Knife (right side) -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M66,28 L66,45 Q66,50 71,50 L74,50 L74,48 L71,48 Q69,48 69,45 L69,28 Z"/>
+    <!-- Knife handle -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M67,50 L67,80 Q69.5,82 72,80 L72,50 Z"/>
+    
+</vector>

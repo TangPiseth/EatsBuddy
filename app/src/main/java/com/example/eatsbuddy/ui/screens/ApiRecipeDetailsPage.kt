@@ -25,7 +25,6 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -53,6 +52,7 @@ import coil.compose.AsyncImage
 import com.example.eatsbuddy.data.model.Ingredient
 import com.example.eatsbuddy.data.model.Meal
 import com.example.eatsbuddy.data.model.MealPreview
+import com.example.eatsbuddy.ui.components.LoadingScreen
 import com.example.eatsbuddy.ui.theme.GreenLight
 import com.example.eatsbuddy.ui.theme.GreenPrimary
 import com.example.eatsbuddy.ui.theme.Orange
@@ -144,14 +144,10 @@ fun ApiRecipeDetailsPage(
     ) { paddingValues ->
         when {
             state.isLoading -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(color = GreenPrimary)
-                }
+                LoadingScreen(
+                    message = "Loading recipe details...",
+                    modifier = Modifier.padding(paddingValues)
+                )
             }
             
             state.error != null -> {

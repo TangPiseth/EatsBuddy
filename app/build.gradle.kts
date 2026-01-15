@@ -78,6 +78,9 @@ dependencies {
     // DataStore for local storage (modern replacement for PaperDB)
     implementation(libs.androidx.datastore.preferences)
 
+    // Splash Screen API
+    implementation("androidx.core:core-splashscreen:1.0.1")
+
     // Firebase
     implementation(platform("com.google.firebase:firebase-bom:33.8.0"))
     implementation("com.google.firebase:firebase-auth-ktx")

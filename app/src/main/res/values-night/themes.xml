@@ -3,9 +3,9 @@
 
     <style name="Theme.EatsBuddy" parent="android:Theme.Material.Light.NoActionBar" />
     
-    <!-- Splash Screen Theme -->
+    <!-- Splash Screen Theme for Dark Mode -->
     <style name="Theme.EatsBuddy.Splash" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/green_primary</item>
+        <item name="windowSplashScreenBackground">@color/green_dark</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
         <item name="windowSplashScreenAnimationDuration">1000</item>
         <item name="postSplashScreenTheme">@style/Theme.EatsBuddy</item>
