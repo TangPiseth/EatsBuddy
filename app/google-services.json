@@ -1,1 +1,29 @@
-
+{
+  "project_info": {
+    "project_number": "308650574254",
+    "project_id": "eatsbuddy",
+    "storage_bucket": "eatsbuddy.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:308650574254:android:33d354f6d2d4e9eb7a083f",
+        "android_client_info": {
+          "package_name": "com.example.eatsbuddy"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDM-9MgItH2o-cmIsooZzi2bxQDwROwgYA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -2,12 +2,12 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.google.services)
+     alias(libs.plugins.google.services)
 }
 
 android {
     namespace = "com.example.eatsbuddy"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.eatsbuddy"
@@ -37,6 +37,7 @@ android {
     }
     buildFeatures {
         compose = true
+        viewBinding = true
     }
 }
 
@@ -50,6 +51,8 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.constraintlayout)
+    implementation("com.google.android.material:material:1.13.0")
 
     // Testing
     testImplementation(libs.junit)
@@ -75,10 +78,14 @@ dependencies {
     // DataStore for local storage (modern replacement for PaperDB)
     implementation(libs.androidx.datastore.preferences)
 
+    // Splash Screen API
+    implementation("androidx.core:core-splashscreen:1.0.1")
+
     // Firebase
-    implementation(libs.firebase.bom.v3380)
-    implementation(libs.google.firebase.auth.ktx)
-    implementation(libs.google.firebase.firestore.ktx)
+    implementation(platform("com.google.firebase:firebase-bom:33.8.0"))
+    implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation("com.google.firebase:firebase-storage-ktx")
 
     // Navigation
     implementation(libs.androidx.navigation.compose)

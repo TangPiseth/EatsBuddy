@@ -18,9 +18,9 @@
     <color name="gradient_start">#FFF9F5</color>
     <color name="gradient_end">#FFFFFF</color>
     
-    <!-- EatsBuddy Brand Colors -->
-    <color name="green_primary">#2E7D32</color>
-    <color name="green_light">#4CAF50</color>
+    <!-- EatsBuddy Brand Colors (Dark Mode) -->
+    <color name="green_primary">#4CAF50</color>
+    <color name="green_light">#81C784</color>
     <color name="green_dark">#1B5E20</color>
-    <color name="splash_background">#2E7D32</color>
+    <color name="splash_background">#1B5E20</color>
 </resources>
