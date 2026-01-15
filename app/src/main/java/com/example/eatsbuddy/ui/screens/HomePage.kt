@@ -357,7 +357,10 @@ fun HomePage(
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         contentPadding = PaddingValues(horizontal = 20.dp)
                     ) {
-                        items(shuffledCategories.size) { index ->
+                        items(
+                            count = shuffledCategories.size,
+                            key = { shuffledCategories[it].id }
+                        ) { index ->
                             val category = shuffledCategories[index]
                             val color = categoryColors[index % categoryColors.size]
                             val emoji = getCategoryEmoji(category.name)
@@ -414,7 +417,7 @@ fun HomePage(
                         horizontalArrangement = Arrangement.spacedBy(16.dp),
                         contentPadding = PaddingValues(horizontal = 20.dp)
                     ) {
-                        items(popularMeals) { meal ->
+                        items(popularMeals, key = { it.id }) { meal ->
                             PopularMealCard(
                                 meal = meal,
                                 onClick = { onRecipeClick(meal.id) },
@@ -657,7 +660,10 @@ fun PopularMealCard(
                     .height(120.dp)
             ) {
                 AsyncImage(
-                    model = meal.thumbnailUrl,
+                    model = coil.request.ImageRequest.Builder(androidx.compose.ui.platform.LocalContext.current)
+                        .data(meal.thumbnailUrl)
+                        .crossfade(true)
+                        .build(),
                     contentDescription = meal.name,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()

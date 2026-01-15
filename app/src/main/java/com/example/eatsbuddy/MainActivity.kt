@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -15,6 +16,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.eatsbuddy.ui.components.BottomNavigationBar
+import com.example.eatsbuddy.ui.screens.AboutPage
 import com.example.eatsbuddy.ui.screens.ApiRecipeDetailsPage
 import com.example.eatsbuddy.ui.screens.ApiRecipesPage
 import com.example.eatsbuddy.ui.screens.ContactPage
@@ -32,6 +34,8 @@ import com.example.eatsbuddy.ui.theme.EatsBuddyTheme
 import com.example.eatsbuddy.viewmodel.AuthViewModel
 import com.example.eatsbuddy.viewmodel.GroceryViewModel
 import com.example.eatsbuddy.viewmodel.RecipeViewModel
+import com.example.eatsbuddy.viewmodel.ThemeMode
+import com.example.eatsbuddy.viewmodel.ThemeViewModel
 import com.example.eatsbuddy.viewmodel.UserDataViewModel
 
 class MainActivity : ComponentActivity() {
@@ -39,9 +43,18 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            EatsBuddyTheme(darkTheme = false) {
+            val themeViewModel: ThemeViewModel = viewModel()
+            val themeMode by themeViewModel.themeMode.collectAsState()
+            
+            val isDarkTheme = when (themeMode) {
+                ThemeMode.LIGHT -> false
+                ThemeMode.DARK -> true
+                ThemeMode.SYSTEM -> isSystemInDarkTheme()
+            }
+            
+            EatsBuddyTheme(darkTheme = isDarkTheme) {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    EatsBuddyApp()
+                    EatsBuddyApp(themeViewModel = themeViewModel)
                 }
             }
         }
@@ -49,7 +62,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun EatsBuddyApp() {
+fun EatsBuddyApp(themeViewModel: ThemeViewModel) {
     val navController = rememberNavController()
     val authViewModel: AuthViewModel = viewModel()
     val recipeViewModel: RecipeViewModel = viewModel()
@@ -58,6 +71,7 @@ fun EatsBuddyApp() {
     val authState by authViewModel.authState.collectAsState()
     val homeState by recipeViewModel.homeState.collectAsState()
     val favoritesState by recipeViewModel.favoritesState.collectAsState()
+    val themeMode by themeViewModel.themeMode.collectAsState()
     val groceryState by groceryViewModel.uiState.collectAsState()
     val userDataState by userDataViewModel.state.collectAsState()
     
@@ -306,7 +320,9 @@ fun EatsBuddyApp() {
                 },
                 onMenuItemClick = { route ->
                     navController.navigate(route)
-                }
+                },
+                isDarkMode = themeMode == ThemeMode.DARK,
+                onToggleDarkMode = { themeViewModel.toggleTheme() }
             )
         }
         

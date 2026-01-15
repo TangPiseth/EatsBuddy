@@ -281,7 +281,10 @@ fun ApiRecipeHeroSection(
         // Background Image
         if (meal.thumbnailUrl != null) {
             AsyncImage(
-                model = meal.thumbnailUrl,
+                model = coil.request.ImageRequest.Builder(androidx.compose.ui.platform.LocalContext.current)
+                    .data(meal.thumbnailUrl)
+                    .crossfade(true)
+                    .build(),
                 contentDescription = meal.name,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop

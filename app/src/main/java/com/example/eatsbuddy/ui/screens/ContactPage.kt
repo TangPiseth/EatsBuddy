@@ -129,8 +129,8 @@ fun ContactPage(
                     )
                     ContactInfoCard(
                         icon = Icons.Default.Phone,
-                        title = "Phone",
-                        value = "+1 (555) 123-4567",
+                        title = "Telephone",
+                        value = "+885 16-789-012",
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -140,7 +140,7 @@ fun ContactPage(
                 ContactInfoCard(
                     icon = Icons.Default.Place,
                     title = "Address",
-                    value = "123 Food Street, Culinary City, CC 12345",
+                    value = "123 Phsar Ahar Street, Sangkat Phsar Leu, Khan Daun Penh, Phnom Penh 12000",
                     modifier = Modifier.fillMaxWidth()
                 )
             }

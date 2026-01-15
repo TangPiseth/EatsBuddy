@@ -27,6 +27,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -57,6 +59,8 @@ fun MorePage(
     currentRoute: String = "more",
     onNavigate: (String) -> Unit = {},
     onMenuItemClick: (String) -> Unit = {},
+    isDarkMode: Boolean = false,
+    onToggleDarkMode: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val menuItems = listOf(
@@ -160,7 +164,57 @@ fun MorePage(
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
-            items(menuItems.size) { index ->
+            // Dark Mode Toggle
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = if (isDarkMode) "🌙" else "☀️",
+                            fontSize = 28.sp
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Dark Mode",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                text = if (isDarkMode) "Dark theme enabled" else "Light theme enabled",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            )
+                        }
+                        Switch(
+                            checked = isDarkMode,
+                            onCheckedChange = { onToggleDarkMode() },
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = Color.White,
+                                checkedTrackColor = GreenPrimary,
+                                uncheckedThumbColor = Color.White,
+                                uncheckedTrackColor = MaterialTheme.colorScheme.outline
+                            )
+                        )
+                    }
+                }
+            }
+
+            items(
+                count = menuItems.size,
+                key = { menuItems[it].route }
+            ) { index ->
                 MoreMenuCard(
                     item = menuItems[index],
                     onClick = { onMenuItemClick(menuItems[index].route) }

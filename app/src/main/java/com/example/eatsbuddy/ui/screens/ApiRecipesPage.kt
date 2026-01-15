@@ -179,7 +179,7 @@ fun ApiRecipesPage(
                 LazyRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    items(state.categories) { category ->
+                    items(state.categories, key = { it.id }) { category ->
                         ApiCategoryChip(
                             category = category,
                             isSelected = selectedCategoryName == category.name,
@@ -348,7 +348,10 @@ fun ApiRecipeListItem(
             ) {
                 if (meal.thumbnailUrl != null) {
                     AsyncImage(
-                        model = meal.thumbnailUrl,
+                        model = coil.request.ImageRequest.Builder(androidx.compose.ui.platform.LocalContext.current)
+                            .data(meal.thumbnailUrl)
+                            .crossfade(true)
+                            .build(),
                         contentDescription = meal.name,
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop

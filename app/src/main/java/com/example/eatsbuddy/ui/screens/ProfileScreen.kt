@@ -468,7 +468,7 @@ fun ProfileScreen(
                                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                                     contentPadding = PaddingValues(horizontal = 4.dp)
                                 ) {
-                                    items(favoriteMeals) { meal ->
+                                    items(favoriteMeals, key = { it.id }) { meal ->
                                         FavoriteRecipeCard(
                                             meal = meal,
                                             onClick = { onFavoriteRecipeClick(meal.id) }
